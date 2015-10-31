@@ -4,25 +4,17 @@
 
 
 // testar se string esta no formato ipv4
-// se is_prefix for 1, sera verificado se a mascara foi informada em numero de bits
-// se have_port for 1, sera verificado se a porta foi informada, mas nao e' possivel ter o prefixo e a
 // porta na mesma declaracao
-int is_ipv4(char *str, int is_prefix, int have_port){
+int is_ipv4(char *str){
 	char atch;
 	char lastch;
 	char nextch;
 	register int i, j;
 
-	int prefix = 0;
-	int port = 0;
-
 	int len;
 
 	// string vazia
 	if(!str || !str[0]) return 1;
-
-	// pedido impossivel
-	if(is_prefix && have_port) return 2;
 
 	// tamanho da string
 	len=strlen(str);
@@ -39,17 +31,6 @@ int is_ipv4(char *str, int is_prefix, int have_port){
 	// menor formato: 0.0.0.0
 	// maior formato: 255.255.255.255:65123
 	if(len<7 || len > 21) return 3;
-
-	// COM PREFIXO
-	// menor formato: 0.0.0.0/0
-	// maior formato: 255.255.255.255/32
-	if(is_prefix && ( len < 9 || len > 18 ) ) return 4;
-
-	// COM PORTA
-	// menor formato: 0.0.0.0:1
-	// maior formato: 255.255.255.255:65123
-	if(have_port && ( len < 9 || len > 21 ) ) return 5;
-
 
 	// Loop byte a byte
 
@@ -80,8 +61,8 @@ int is_ipv4(char *str, int is_prefix, int have_port){
 		if(!i && !isdigit(atch)) return 6;
 
 		// caracter proibidos de acordo com o tipo de requisicao
-		if( ! is_prefix && atch=='/' ) return 7;
-		if( ! have_port && atch==':' ) return 8;
+		if( atch=='/' ) return 7;
+		if( atch==':' ) return 8;
 
 		// sequencias proibidas
 		if(lastch){
@@ -121,35 +102,19 @@ int is_ipv4(char *str, int is_prefix, int have_port){
 				num += (ch - 48);
 				i = j;
 			}
-			if(byteidx > 3){
-				// pos-ip
-				if(is_prefix){
-					// esquisito
-					if(prefix) return 13;
-					prefix = num;
-				}else{
-					if(port) return 14;
-					port = num;
-				}
-			}else{
-				// parte IP
-				bytes[byteidx]=num;	
-				byteidx++;
-			}
+			// parte IP
+			bytes[byteidx]=num;	
+			byteidx++;
 			continue;
 		}
 	} // for i
 
 
+	printf("BYTES: %d.%d.%d.%d\n", bytes[0], bytes[1], bytes[2], bytes[3]);
+
 	// nao informou 4 bytes
 	// printf("final byteidx: %d\n", byteidx);
 	if(byteidx != 4) return 15;
-
-	// pediu prefix mas nao informou o prefixo
-	if(is_prefix && (prefix < 0 || prefix > 32)) return 16;
-
-	// pediu prefix mas nao informou o prefixo
-	if(have_port && (!port || port > 65535)) return 17;
 
 	// nenhum byte pode ser maior que 255
 	for(i=0;i<4;i++) if( bytes[i] < 0 || bytes[i] > 255 )return 120+i;
@@ -174,9 +139,27 @@ int main(int argc, char **argv){
 	int i = 0;
     if(argc<2) help_std();
 	for(i=1;i<argc;i++){
-		int r = is_ipv4(argv[i], 0, 0);
+		int r = is_ipv4(argv[i]);
 		if(r>0) return r;
 	}
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
