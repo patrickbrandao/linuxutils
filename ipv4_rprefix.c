@@ -16,9 +16,10 @@ void help_std(){
 }
 
 // randomizar byte
-unsigned char byterand(){
+unsigned char byterand(int min, int max){
+    int dif = max - min;
     unsigned char r;
-    r =rand() % 223;
+    r = (rand() % dif) + min;
     return r;
 }
 
@@ -35,13 +36,13 @@ int main(int argc, char **argv){
     // tamanho do prefixo
     int plen = 0;
     if(argc > 1) plen = atoi(argv[1]);
-    if(plen < 1 || plen > 32) plen = 24;
+    if(plen < 1 || plen > 32) plen = byterand(8,24);
 
     // gerar numero
-    a=byterand();
-    b=byterand();
-    c=byterand();
-    d=byterand();
+    a=byterand(0, 223);
+    b=byterand(0, 255);
+    c=byterand(0, 255);
+    d=byterand(0, 255);
 
     // converter para binario
     val |= (a << 24) | (b << 16) | (c << 8) | d;
