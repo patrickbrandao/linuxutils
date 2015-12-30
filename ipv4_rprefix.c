@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <netinet/in.h>
 #include <time.h>
+#include <unistd.h>
 
 void help_std(){
     printf("\n");
@@ -19,7 +20,16 @@ void help_std(){
 unsigned char byterand(int min, int max){
     int dif = max - min;
     unsigned char r;
-    r = (rand() % dif) + min;
+    int n;
+
+    // semear
+    srand((unsigned int) time(0) + getpid());
+    n= (int)(rand());
+    r = (n % dif) + min;
+
+    // security!
+    if(r>max)r=max;
+
     return r;
 }
 
@@ -30,8 +40,6 @@ int main(int argc, char **argv){
     u_int32_t mask = 0;
     unsigned char a=0,b=0,c=0,d=0;
 
-    // semear
-    srand(time(NULL));
 
     // tamanho do prefixo
     int plen = 0;
