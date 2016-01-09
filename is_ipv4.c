@@ -109,9 +109,6 @@ int is_ipv4(char *str){
 		}
 	} // for i
 
-
-	printf("BYTES: %d.%d.%d.%d\n", bytes[0], bytes[1], bytes[2], bytes[3]);
-
 	// nao informou 4 bytes
 	// printf("final byteidx: %d\n", byteidx);
 	if(byteidx != 4) return 15;
