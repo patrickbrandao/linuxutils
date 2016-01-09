@@ -11,7 +11,6 @@ int is_ipv4_prefix(char *str){
 	char comp[INET_ADDRSTRLEN];
 	int idx1 = 0, idx2 = 0;
 	int prefix = 0;
-	int dotcount = 0;
 	int barcount = 0;
 
 	// string vazia
@@ -38,11 +37,6 @@ int is_ipv4_prefix(char *str){
 		// caracter proibidos de acordo com o tipo de requisicao
 		if( atch==':' ) return 4;
 
-		// ponto
-		if(atch == '.'){
-			dotcount++;
-			if(dotcount > 3) return 5;
-		}
 		// separador de prefixo
 		if(atch == '/'){
 			barcount++;
