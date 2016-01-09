@@ -16,6 +16,7 @@ int is_ipv4(char *str, int is_prefix, int have_port){
 	int prefix = 0;
 	int port = 0;
 
+
 	int len;
 
 	// string vazia
@@ -57,8 +58,8 @@ int is_ipv4(char *str, int is_prefix, int have_port){
 	int dotcount = 0;
 	int barcount = 0;
 	int comacount = 0;
-	int bytes[4];
-	bytes[0]=bytes[1]=bytes[2]=bytes[3]=-1;
+	int bytes[5];
+	bytes[0]=bytes[1]=bytes[2]=bytes[3]=bytes[4]=-1;
 	int byteidx = 0;
 
 	// loop
@@ -74,7 +75,6 @@ int is_ipv4(char *str, int is_prefix, int have_port){
 
 		// se for ponto, ler novo numero
 		// printf("CHAR: %c\n", atch);
-
 
 		// nao pode comecar caracter diferente de numero
 		if(!i && !isdigit(atch)) return 6;
@@ -94,25 +94,35 @@ int is_ipv4(char *str, int is_prefix, int have_port){
 		}
 
 		// ponto
-		if(atch == '.') dotcount++;
-		if(dotcount > 4) return 12;
+		if(atch == '.'){
+			dotcount++;
+			if(dotcount > 3) return 12;
+			continue;
+		}
 
 		// barra
-		if(atch == '/') barcount++;
-		if(barcount > 1 ) return 21;
+		if(atch == '/'){
+			barcount++;
+			if(barcount > 1 ) return 21;
+			if(!is_prefix) return 31;
+		}
 
 		// barra
-		if(atch == ':') comacount++;
-		if(comacount > 1 ) return 22;
+		if(atch == ':'){
+			comacount++;
+			if(comacount > 1 ) return 22;
+			if(!have_port) return 32;
+		}
 
 		// se eu ler um coma ou barra sem ler os bytes IP, temos um problema
-		if( byteidx != 4 && (comacount || barcount)) return 23;
+		if( byteidx < 4 && (comacount || barcount)) return 23;
 
 		// ler numero
 		if( isdigit(atch) ){
 			int k = 0;
 			num = 0;
-			for(j=i; j<len && k < 3; j++, k++){
+
+			for(j=i; j<len && k < 5; j++, k++){
 				char ch = str[j];
 				if(!isdigit(ch)) break;
 				// novo numero, o anterior vale 10
@@ -121,32 +131,56 @@ int is_ipv4(char *str, int is_prefix, int have_port){
 				num += (ch - 48);
 				i = j;
 			}
-			if(byteidx > 3){
-				// pos-ip
+
+			// acabou a string
+			if(!str[i]) break;
+
+			// encontramos um divisor
+			if(have_port && str[i]==':'){
+				i--;
+				continue;
+			}
+			if(is_prefix && str[i]=='/'){
+				i--;
+				continue;
+			}
+
+			// muitos numeros, indice 5 em diante nao existe
+			if(byteidx > 4) return 40;
+
+			// numero de porta ou prefixo
+			if(byteidx == 4){
 				if(is_prefix){
-					// esquisito
+					// esquisito, o prefixo ja foi lido
 					if(prefix) return 13;
+					// coletar prefixo
 					prefix = num;
 				}else{
+					// esquisito, a porta ja foi lida
 					if(port) return 14;
+					// coletar porta
 					port = num;
 				}
-			}else{
-				// parte IP
-				bytes[byteidx]=num;	
-				byteidx++;
 			}
-			continue;
+
+			// coletar byte
+			bytes[byteidx]=num;	
+			byteidx++;
 		}
+
 	} // for i
 
+	//printf("BYTES: %d.%d.%d.%d | %d, byteidx: %d\n", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], byteidx);
 
 	// nao informou 4 bytes
 	// printf("final byteidx: %d\n", byteidx);
-	if(byteidx != 4) return 15;
+	if(byteidx < 4) return 15;
 
 	// pediu prefix mas nao informou o prefixo
 	if(is_prefix && (prefix < 0 || prefix > 32)) return 16;
+
+	// pediu prefixo mas nao informou /
+	if(is_prefix && !barcount) return 21;
 
 	// pediu prefix mas nao informou o prefixo
 	if(have_port && (!port || port > 65535)) return 17;
@@ -156,7 +190,6 @@ int is_ipv4(char *str, int is_prefix, int have_port){
 
 	return 0;
 }
-
 
 void help_std(){
 	printf("\n");
