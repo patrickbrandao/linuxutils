@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <netinet/in.h>
 
 // testar se string esta no formato de rede ipv4
 int is_ipv4_prefix(char *str){
@@ -89,7 +89,7 @@ int main(int argc, char **argv){
 	int i = 0;
     if(argc<2) help_std();
 	for(i=1;i<argc;i++){
-		int r = is_ipv4_prefix(argv[i], 1, 0);
+		int r = is_ipv4_prefix(argv[i]);
 		if(r>0) return r;
 	}
 	return 0;
